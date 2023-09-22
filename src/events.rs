@@ -131,17 +131,9 @@ pub fn update(app: &App, model: &mut Model, _update: Update) {
     let mut new_block_positions: HashMap<Vector2, Block> = HashMap::new();
 
     for block in blocks.iter_mut() {
-        // if block.erased {
-        //     println!("Erased block");
-        //     continue
-        // }
-
-
-
         if let Some(_) = model.positions_to_erase.get(&block.position) {
-            continue;
+            continue; // dont insert into new_blocks
         }
-
 
         block.update(app, &new_block_positions, &model.window_positions);
 

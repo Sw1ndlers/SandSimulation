@@ -114,7 +114,7 @@ impl Block {
         return true;
     }
 
-    fn apply_gravity(&mut self, block_positions: &HashMap<Vector2, Block>, window_positions: &Vec<f32>) -> bool {
+    fn apply_gravity(&mut self, block_positions: &HashMap<Vector2, Block>, window_positions: &Vec<f32>)  {
         // let mut new_velocity = vector2(0.0, 0.0);
         // let gravity_y = self.gravity.y * -1.0;
 
@@ -142,23 +142,23 @@ impl Block {
         //self.velocity = new_velocity;
         // self.velocity = self.gravity;
         let new_velocity = self.gravity;
-        let next_position = round_position(self.position + new_velocity);
+        // let next_position = round_position(self.position + new_velocity);
 
-        if self.position_in_bounds(next_position, window_positions) == false {
-            return false;
-        }
 
         self.velocity = new_velocity;
-        return true;
     }
 
-    fn stack_block(&mut self, block_positions: &HashMap<Vector2, Block>, window_positions: &Vec<f32>) {
+    fn stack_block(&mut self, block_positions: &HashMap<Vector2, Block>) {
         let blocked_directions = get_blocked_directions(*self, &block_positions);
+
+        // let left_open = block_positions.contains_key(&(self.position + vector2(-BLOCK_SIZE, 0.0))) == false;
+        // let right_open = block_positions.contains_key(&(self.position + vector2(BLOCK_SIZE, 0.0))) == false;
 
         let left_open = blocked_directions.contains_key(&Direction::BottomLeft) == false;
         let right_open = blocked_directions.contains_key(&Direction::BottomRight) == false;
+        let middle_open = blocked_directions.contains_key(&Direction::BottomMiddle) == false;
 
-        if left_open == false && right_open == false {
+        if middle_open || (left_open == false && right_open == false) {
             return;
         }
 
@@ -177,13 +177,15 @@ impl Block {
             return;
         };
 
-        let new_position = self.position + vector2(move_direction, -BLOCK_SIZE);
+        // let new_position = round_position(self.position + vector2(move_direction, -BLOCK_SIZE));
 
-        if self.position_in_bounds(new_position, window_positions) == false && block_positions.contains_key(&new_position) == false {
-            return;
-        }
+        // if self.position_in_bounds(new_position, window_positions) == false && block_positions.contains_key(&new_position) == false {
+        //     return;
+        // }
+        
 
-        self.position = new_position;
+        // self.position = new_position;
+        self.velocity = vector2(move_direction, -BLOCK_SIZE);
     }
 
     pub fn update(&mut self, _app: &App, block_positions: &HashMap<Vector2, Block>, window_positions: &Vec<f32>) {
@@ -199,36 +201,32 @@ impl Block {
         let block_below = match block_positions.get(&position_below) {
             Some(block) => *block,
             None => {
-                let applied_gravity = self.apply_gravity(block_positions, window_positions);
-                let next_position = self.position + self.velocity;
+                self.apply_gravity(block_positions, window_positions);
 
-                if applied_gravity == false {
+                let next_position = round_position(self.position + self.velocity);
+
+                if block_positions.contains_key(&next_position) || self.position_in_bounds(next_position, window_positions) == false {
                     self.block_state = BlockState::Stacked;
                     return;
                 }
+
                 self.block_state = BlockState::Falling;
-                self.position = round_position(next_position);
+                self.position = next_position;
                 return;
             },
         };
 
         if block_below.block_state == BlockState::Stacked {
-            self.stack_block(&block_positions, window_positions);
-            self.block_state = BlockState::Stacked;
-
-            return;
-        }
-
-        if self.position_in_bounds(self.position + vector2(0.0, -BLOCK_SIZE), window_positions) == false || block_below.block_type == BlockType::Stone {
-            self.block_state = BlockState::Stacked;
-            return;
+            self.stack_block(&block_positions);
         }
 
         let next_position = round_position(self.position + self.velocity);
+
         if block_positions.contains_key(&next_position) || self.position_in_bounds(next_position, window_positions) == false {
-            self.block_state = BlockState::Stacked;
             return;
         }
+
+        self.block_state = BlockState::Stacked; // only will happen when gravity isnt applied
         self.position = next_position;
     }
 }
