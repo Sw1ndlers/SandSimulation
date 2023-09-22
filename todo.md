@@ -1,0 +1,2 @@
+- Add block types to prevent wierd stacking issue
+- Add deleting blocks with right click
