@@ -142,8 +142,9 @@ impl Block {
         //self.velocity = new_velocity;
         // self.velocity = self.gravity;
         let new_velocity = self.gravity;
+        let next_position = round_position(self.position + new_velocity);
 
-        if self.position_in_bounds(self.position + new_velocity, window_positions) == false {
+        if self.position_in_bounds(next_position, window_positions) == false {
             return false;
         }
 
@@ -220,13 +221,14 @@ impl Block {
 
         if self.position_in_bounds(self.position + vector2(0.0, -BLOCK_SIZE), window_positions) == false || block_below.block_type == BlockType::Stone {
             self.block_state = BlockState::Stacked;
+            return;
         }
 
-        let next_position = self.position + self.velocity;
-        if block_positions.contains_key(&next_position) {
+        let next_position = round_position(self.position + self.velocity);
+        if block_positions.contains_key(&next_position) || self.position_in_bounds(next_position, window_positions) == false {
             self.block_state = BlockState::Stacked;
             return;
         }
-        self.position = round_position(next_position);
+        self.position = next_position;
     }
 }
