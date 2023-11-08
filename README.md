@@ -1,7 +1,5 @@
 # Sand Simulation
 
-## Descriptions
-
 A sand simulation made in rust  
 There are still some issues that need to be worked out
 
